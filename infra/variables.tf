@@ -13,3 +13,8 @@ variable "resource_group_name" {
 variable "azure_location" {
   default = "Central India"
 }
+
+variable "azure_vm_ssh_public_key" {
+  type      = string
+  sensitive = true
+}

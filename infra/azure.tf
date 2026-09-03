@@ -25,6 +25,40 @@ resource "azurerm_subnet" "internal" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
+# Create Azure NSG
+resource "azurerm_network_security_group" "web_nsg" {
+  name                = "multicloud-nsg"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+
+  # Allow HTTP Rule
+  security_rule {
+    name                       = "HTTP"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  # Allow SSH Rule
+  security_rule {
+    name                       = "SSH"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+
 resource "azurerm_public_ip" "web_public_ip" {
   name                = "multicloud-public-ip"
   location            = azurerm_resource_group.main.location
@@ -45,6 +79,10 @@ resource "azurerm_network_interface" "web_nic" {
   }
 }
 
+resource "azurerm_network_interface_security_group_association" "web_nic_assoc" {
+  network_interface_id      = azurerm_network_interface.web_nic.id
+  network_security_group_id = azurerm_network_security_group.web_nsg.id
+}
 
 # Public Key
 resource "azurerm_ssh_public_key" "vm_key" {
@@ -54,7 +92,7 @@ resource "azurerm_ssh_public_key" "vm_key" {
 
   # This uses a local key you already have. 
   # If you don't have one, run 'ssh-keygen -t rsa -b 4096' in your terminal first.
-  public_key = file("~/.ssh/id_rsa.pub")
+  public_key          = var.azure_vm_ssh_public_key
 }
 
 # Virtual Machine
