@@ -10,3 +10,6 @@ output "acr_repo_url" {
   value = azurerm_container_registry.app.login_server
 }
 
+output "vm_public_ip" {
+  value = azurerm_public_ip.web_public_ip.ip_address
+}
