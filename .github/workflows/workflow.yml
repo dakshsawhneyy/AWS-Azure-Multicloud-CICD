@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      ecr_repo_url: ${{ steps.terraform_apply.outputs.stdout ? jsonpath(steps.terraform_apply.outputs.stdout, '$.outputs.ecr_repo_url.value') : steps.tf_outputs.outputs.ecr_repo_url }}
+      ecr_repo_url: ${{ steps.terraform_outputs.outputs.ecr_repo_url }}
       ec2_public_ip: ${{ steps.terraform_outputs.outputs.ec2_public_ip }}
       acr_repo_url: ${{ steps.terraform_outputs.outputs.acr_repo_url }}
       vm_public_ip: ${{ steps.terraform_outputs.outputs.vm_public_ip }}
