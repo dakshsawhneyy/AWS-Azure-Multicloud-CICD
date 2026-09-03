@@ -187,12 +187,16 @@ jobs:
           script: |
             ECR_REPO="634740393634.dkr.ecr.ap-south-1.amazonaws.com/multicloud-pipeline-repo"
             ECR_REGISTRY=$(echo "$ECR_REPO" | cut -d'/' -f1)
-
+          
             if ! command -v docker &> /dev/null; then
               sudo apt-get update && sudo apt-get install -y docker.io
               sudo systemctl enable --now docker
             fi
-
+          
+            if ! command -v aws &> /dev/null; then
+              sudo apt-get update && sudo apt-get install -y awscli
+            fi
+          
             aws ecr get-login-password --region "${{ secrets.AWS_REGION }}" | sudo docker login --username AWS --password-stdin "$ECR_REGISTRY"
             sudo docker pull "$ECR_REPO:${{ github.sha }}"
             sudo docker stop ${{ env.APP_NAME }} || true
