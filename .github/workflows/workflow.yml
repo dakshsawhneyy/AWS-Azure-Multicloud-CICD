@@ -2,6 +2,7 @@ name: Multi-Cloud CI/CD Pipeline
 
 on:
   push:
+  workflow_dispatch:
 
 env:
   APP_NAME: multi-cloud-app
