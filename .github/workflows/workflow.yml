@@ -58,7 +58,18 @@ jobs:
           ACR_REPO_URL=$(terraform output -raw acr_repo_url)
           VM_PUBLIC_IP=$(terraform output -raw vm_public_ip)
           
+          # Validate outputs
+          if [ -z "$ECR_REPO_URL" ]; then
+            echo "ERROR: ecr_repo_url is empty"
+            exit 1
+          fi
+          if [ -z "$ACR_REPO_URL" ]; then
+            echo "ERROR: acr_repo_url is empty"
+            exit 1
+          fi
+          
           echo "DEBUG ecr_repo_url=$ECR_REPO_URL"
+          echo "DEBUG acr_repo_url=$ACR_REPO_URL"
           
           echo "ecr_repo_url=${ECR_REPO_URL}" >> "$GITHUB_OUTPUT"
           echo "ec2_public_ip=${EC2_PUBLIC_IP}" >> "$GITHUB_OUTPUT"
@@ -101,7 +112,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Debug incoming outputs
-        run: echo ${{ needs.infrastructure.outputs.ecr_repo_url }}
+        run: |
+          echo "ECR Repo URL: ${{ needs.infrastructure.outputs.ecr_repo_url }}"
+          echo "ACR Repo URL: ${{ needs.infrastructure.outputs.acr_repo_url }}"
+          echo "EC2 Public IP: ${{ needs.infrastructure.outputs.ec2_public_ip }}"
+          echo "VM Public IP: ${{ needs.infrastructure.outputs.vm_public_ip }}"
 
       
       - name: Configure AWS credentials
