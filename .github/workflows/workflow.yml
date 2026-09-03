@@ -114,6 +114,7 @@ jobs:
           az acr login --name "$ACR_NAME"
 
       - name: Build Docker image
+        working-directory: ./app
         run: |
           docker build \
             -t $APP_NAME:$IMAGE_TAG \
