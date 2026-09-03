@@ -48,14 +48,27 @@ jobs:
           TF_VAR_azure_vm_ssh_public_key: ${{ secrets.AZURE_VM_SSH_PUBLIC_KEY }}
         run: terraform apply -auto-approve -input=false
 
+      - name: Verify Terraform outputs
+        working-directory: ./infra
+        run: |
+          terraform output
+
       - name: Read Terraform outputs
         id: terraform_outputs
         working-directory: ./infra
         run: |
-          echo "ecr_repo_url=$(terraform output -raw ecr_repo_url)" >> "$GITHUB_OUTPUT"
-          echo "ec2_public_ip=$(terraform output -raw ec2_public_ip)" >> "$GITHUB_OUTPUT"
-          echo "acr_repo_url=$(terraform output -raw acr_repo_url)" >> "$GITHUB_OUTPUT"
-          echo "vm_public_ip=$(terraform output -raw vm_public_ip)" >> "$GITHUB_OUTPUT"
+          ECR_REPO_URL=$(terraform output -raw ecr_repo_url)
+          EC2_PUBLIC_IP=$(terraform output -raw ec2_public_ip)
+          ACR_REPO_URL=$(terraform output -raw acr_repo_url)
+          VM_PUBLIC_IP=$(terraform output -raw vm_public_ip)
+      
+          echo "ecr_repo_url=$ECR_REPO_URL" >> "$GITHUB_OUTPUT"
+          echo "ec2_public_ip=$EC2_PUBLIC_IP" >> "$GITHUB_OUTPUT"
+          echo "acr_repo_url=$ACR_REPO_URL" >> "$GITHUB_OUTPUT"
+          echo "vm_public_ip=$VM_PUBLIC_IP" >> "$GITHUB_OUTPUT"
+      
+          echo "ECR output successfully read"
+          echo "ACR output successfully read"
 
   test-and-security-gates:
     name: Build and Test
@@ -119,6 +132,11 @@ jobs:
           docker build \
             -t $APP_NAME:$IMAGE_TAG \
             .
+
+      - name: Verify infrastructure outputs
+        run: |
+          echo "ECR repository URL: ${{ needs.infrastructure.outputs.ecr_repo_url }}"
+          echo "ACR repository URL: ${{ needs.infrastructure.outputs.acr_repo_url }}"
 
       - name: Tag image for Amazon ECR
         run: |
