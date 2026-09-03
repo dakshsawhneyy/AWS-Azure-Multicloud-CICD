@@ -47,27 +47,28 @@ jobs:
           TF_VAR_azure_vm_ssh_public_key: ${{ secrets.AZURE_VM_SSH_PUBLIC_KEY }}
         run: terraform apply -auto-approve -input=false
 
-      - name: Read Terraform outputs
+            - name: Read Terraform outputs
         id: terraform_outputs
         working-directory: ./infra
         run: |
           set -euo pipefail
           
           echo "=== Reading Terraform Outputs ==="
-          ECR_REPO_URL=$(terraform output -raw ecr_repo_url 2>/dev/null || echo "MISSING")
-          EC2_PUBLIC_IP=$(terraform output -raw ec2_public_ip 2>/dev/null || echo "MISSING")
-          ACR_REPO_URL=$(terraform output -raw acr_repo_url 2>/dev/null || echo "MISSING")
-          VM_PUBLIC_IP=$(terraform output -raw vm_public_ip 2>/dev/null || echo "MISSING")
+          
+          # Get outputs - better error handling
+          ECR_REPO_URL=$(terraform output -raw ecr_repo_url)
+          EC2_PUBLIC_IP=$(terraform output -raw ec2_public_ip)
+          ACR_REPO_URL=$(terraform output -raw acr_repo_url)
+          VM_PUBLIC_IP=$(terraform output -raw vm_public_ip)
           
           echo "ECR_REPO_URL: '$ECR_REPO_URL'"
           echo "EC2_PUBLIC_IP: '$EC2_PUBLIC_IP'"
           echo "ACR_REPO_URL: '$ACR_REPO_URL'"
           echo "VM_PUBLIC_IP: '$VM_PUBLIC_IP'"
           
-          # Validate all outputs are present
-          if [[ "$ECR_REPO_URL" == "MISSING" ]] || [[ "$ACR_REPO_URL" == "MISSING" ]] || [[ "$EC2_PUBLIC_IP" == "MISSING" ]] || [[ "$VM_PUBLIC_IP" == "MISSING" ]]; then
-            echo "ERROR: One or more Terraform outputs are missing!"
-            echo "Full terraform output:"
+          # Validate all outputs are present and not empty
+          if [ -z "$ECR_REPO_URL" ] || [ -z "$ACR_REPO_URL" ] || [ -z "$EC2_PUBLIC_IP" ] || [ -z "$VM_PUBLIC_IP" ]; then
+            echo "ERROR: One or more Terraform outputs are empty!"
             terraform output
             exit 1
           fi
@@ -78,7 +79,6 @@ jobs:
           echo "acr_repo_url=$ACR_REPO_URL" >> "$GITHUB_OUTPUT"
           echo "vm_public_ip=$VM_PUBLIC_IP" >> "$GITHUB_OUTPUT"
           
-          # Debug output
           echo "✓ All outputs exported successfully"
           cat "$GITHUB_OUTPUT"
 
