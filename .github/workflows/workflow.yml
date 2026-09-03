@@ -188,24 +188,24 @@ jobs:
             export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
             export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
             export AWS_DEFAULT_REGION="${{ secrets.AWS_REGION }}"
-            
+      
             ECR_REPO="634740393634.dkr.ecr.ap-south-1.amazonaws.com/multicloud-pipeline-repo"
             ECR_REGISTRY=$(echo "$ECR_REPO" | cut -d'/' -f1)
-          
+      
             if ! command -v docker &> /dev/null; then
               sudo apt-get update && sudo apt-get install -y docker.io
               sudo systemctl enable --now docker
             fi
-          
+      
             if ! command -v aws &> /dev/null; then
               sudo apt-get update && sudo apt-get install -y awscli
             fi
-          
-            aws ecr get-login-password --region "${{ secrets.AWS_REGION }}" | sudo docker login --username AWS --password-stdin "$ECR_REGISTRY"
+      
+            aws ecr get-login-password --region "${{ secrets.AWS_REGION }}" | sudo -E docker login --username AWS --password-stdin "$ECR_REGISTRY"
             sudo docker pull "$ECR_REPO:${{ github.sha }}"
             sudo docker stop ${{ env.APP_NAME }} || true
             sudo docker rm ${{ env.APP_NAME }} || true
-            sudo docker run -d --name ${{ env.APP_NAME }} --restart unless-stopped -p 80:3000 "$ECR_REPO:${{ github.sha }}"
+            sudo docker run -d --name ${{ env.APP_NAME }} --restart unless-stopped -p 80:3000 "$ECR_REPO:${{ github.sha }}"restart unless-stopped -p 80:3000 "$ECR_REPO:${{ github.sha }}"
 
   deploy-to-azure-vm:
     name: Deploy to Azure VM
